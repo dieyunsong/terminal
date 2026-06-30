@@ -1,0 +1,25 @@
+.theme-pc #terminal-window {
+  border-radius: 0;
+  border: 1px solid #444;
+}
+
+.theme-pc #terminal-titlebar {
+  background: #012456;
+  color: #fff;
+}
+
+.theme-pc #terminal-output {
+  background: #012456;
+  color: #f2f2f2;
+}
+
+.theme-pc #terminal-input {
+  background: #012456;
+  color: #f2f2f2;
+}
+
+.theme-pc #terminal-window,
+.theme-pc #terminal-output,
+.theme-pc #terminal-input {
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+}
