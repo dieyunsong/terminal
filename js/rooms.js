@@ -1,3 +1,4 @@
+(function () {
 'use strict';
 
 const ROOM_ORDER = ['deck', 'hallway', 'library', 'galley', 'vault', 'bridge'];
@@ -221,3 +222,4 @@ if (typeof module !== 'undefined' && module.exports) {
 if (typeof window !== 'undefined') {
   window.Rooms = rooms;
 }
+})();

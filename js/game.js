@@ -1,3 +1,4 @@
+(function () {
 'use strict';
 
 const FS = (typeof require !== 'undefined') ? require('./filesystem.js') : window.Filesystem;
@@ -153,3 +154,4 @@ if (typeof module !== 'undefined' && module.exports) {
 if (typeof window !== 'undefined') {
   window.Game = game;
 }
+})();
