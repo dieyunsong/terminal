@@ -125,6 +125,7 @@ function mv(fs, cwdPath, source, destination) {
   const srcNode = getNode(fs, srcSegments);
   if (!srcNode) return { success: false, error: `No such file or folder: ${source}` };
   const srcParent = getParent(fs, srcSegments);
+  if (!srcParent) return { success: false, error: 'Cannot move the root.' };
   const srcName = srcSegments[srcSegments.length - 1];
   const { parentSegments, finalName } = resolveDestination(fs, cwdPath, srcName, destination);
   const destParent = getNode(fs, parentSegments);
@@ -145,6 +146,7 @@ function rm(fs, cwdPath, name, recursive) {
     return { success: false, error: `${name} is a folder. Use rm -r ${name} to delete it.` };
   }
   const parent = getParent(fs, segments);
+  if (!parent) return { success: false, error: 'Cannot delete the root.' };
   delete parent.children[segments[segments.length - 1]];
   return { success: true };
 }

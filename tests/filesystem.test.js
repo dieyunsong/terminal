@@ -156,3 +156,17 @@ test('resolvePath handles absolute paths', () => {
 test('resolvePath handles relative paths with ..', () => {
   assert.deepEqual(FS.resolvePath(['foo', 'bar'], '../baz'), ['foo', 'baz']);
 });
+
+test('rm -r / fails gracefully instead of crashing', () => {
+  const fs = sampleFs();
+  const result = FS.rm(fs, [], '/', true);
+  assert.equal(result.success, false);
+  assert.equal(typeof result.error, 'string');
+});
+
+test('mv / fails gracefully instead of crashing', () => {
+  const fs = sampleFs();
+  const result = FS.mv(fs, [], '/', 'somewhere');
+  assert.equal(result.success, false);
+  assert.equal(typeof result.error, 'string');
+});
