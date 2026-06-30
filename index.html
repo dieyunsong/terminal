@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S/V Segfault -- A Terminal Murder Mystery</title>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/theme-mac.css">
+<link rel="stylesheet" href="css/theme-pc.css">
+</head>
+<body>
+
+<section id="landing-screen">
+  <h1>S/V SEGFAULT</h1>
+  <p class="tagline">A Terminal Murder Mystery</p>
+  <p>Learn the command line. Solve the case. Survive the love triangle.</p>
+  <p>Are you playing on a Mac or a PC?</p>
+  <div class="platform-choice">
+    <button id="choose-mac" type="button">Mac</button>
+    <button id="choose-pc" type="button">PC</button>
+  </div>
+</section>
+
+<section id="game-screen" hidden>
+  <div id="terminal-window">
+    <div id="terminal-titlebar">
+      <span id="terminal-title">ARIA Terminal</span>
+    </div>
+    <div id="terminal-output" aria-live="polite"></div>
+    <div id="terminal-input-line">
+      <span id="terminal-prompt">$</span>
+      <input id="terminal-input" type="text" autocomplete="off" spellcheck="false" aria-label="Terminal command input">
+    </div>
+  </div>
+  <aside id="sidebar">
+    <h2 id="sidebar-room-title"></h2>
+    <p id="sidebar-cwd"></p>
+    <h3>Useful commands here</h3>
+    <ul id="sidebar-help"></ul>
+    <h3>Clues collected</h3>
+    <ul id="sidebar-clues"></ul>
+  </aside>
+</section>
+
+<script src="js/filesystem.js"></script>
+<script src="js/commands.js"></script>
+<script src="js/rooms.js"></script>
+<script src="js/game.js"></script>
+<script src="js/terminal-ui.js"></script>
+</body>
+</html>
