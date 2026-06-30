@@ -1,0 +1,9 @@
+{
+  "name": "sv-segfault-terminal-mystery",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A browser-based terminal-command murder mystery game for complete beginners.",
+  "scripts": {
+    "test": "node --test tests/"
+  }
+}
