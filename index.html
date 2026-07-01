@@ -7,8 +7,20 @@
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/theme-mac.css">
 <link rel="stylesheet" href="css/theme-pc.css">
+<link rel="stylesheet" href="css/scenes.css">
 </head>
 <body>
+
+<div id="scene" aria-hidden="true">
+  <div class="scene-room scene-deck"><div class="glow horizon-glow"></div><div class="sea"></div></div>
+  <div class="scene-room scene-hallway"><div class="corridor"></div><div class="glow sconce"></div></div>
+  <div class="scene-room scene-library"><div class="glow lamp"></div><div class="mote"></div><div class="mote"></div><div class="mote"></div><div class="mote"></div></div>
+  <div class="scene-room scene-galley"><div class="steam"></div></div>
+  <div class="scene-room scene-vault"><div class="sheen"></div></div>
+  <div class="scene-room scene-bridge"><div class="radar"></div><div class="panel-glow"></div><div class="sea"></div></div>
+</div>
+
+<button id="audio-toggle" type="button" aria-label="Toggle ambient sound" aria-pressed="true" hidden>&#9835;</button>
 
 <section id="landing-screen">
   <h1>S/V SEGFAULT</h1>
@@ -46,6 +58,7 @@
 <script src="js/commands.js"></script>
 <script src="js/rooms.js"></script>
 <script src="js/game.js"></script>
+<script src="js/audio.js"></script>
 <script src="js/terminal-ui.js"></script>
 </body>
 </html>

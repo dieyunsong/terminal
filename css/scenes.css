@@ -1,0 +1,333 @@
+/* ============================================================================
+   S/V Segfault — cinematic atmosphere layer
+   A full-viewport scene sits behind a frosted-glass terminal HUD. Each room is
+   its own animated environment; completing/entering a room crossfades the
+   backdrop so the player is carried through the yacht. Pure CSS, GPU-friendly
+   (opacity/transform only), no assets.
+   ============================================================================ */
+
+:root {
+  --hud-glass: rgba(10, 16, 26, 0.55);
+  --hud-border: rgba(255, 255, 255, 0.12);
+  --hud-glow: rgba(120, 200, 255, 0.10);
+  --ink: #eef3f8;
+  --ink-dim: rgba(238, 243, 248, 0.62);
+  --accent: #7fd6ff;
+}
+
+html, body { height: 100%; }
+
+body {
+  background: #05070c;
+  color: var(--ink);
+  overflow: hidden;
+}
+
+/* ---- Scene backdrop -------------------------------------------------------- */
+
+#scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scene-room {
+  position: absolute;
+  inset: -4%;                 /* bleed so the slow drift never shows an edge */
+  opacity: 0;
+  transition: opacity 1.6s ease;
+  will-change: opacity, transform;
+  animation: sceneDrift 42s ease-in-out infinite alternate;
+}
+
+/* Active room: default to the deck before the game starts, then follow
+   body[data-room]. */
+body:not([data-room]) .scene-deck,
+body[data-room="deck"]    .scene-deck,
+body[data-room="hallway"] .scene-hallway,
+body[data-room="library"] .scene-library,
+body[data-room="galley"]  .scene-galley,
+body[data-room="vault"]   .scene-vault,
+body[data-room="bridge"]  .scene-bridge {
+  opacity: 1;
+}
+
+@keyframes sceneDrift {
+  from { transform: scale(1.02) translate3d(0, 0, 0); }
+  to   { transform: scale(1.08) translate3d(-1.5%, -1%, 0); }
+}
+
+/* Soft cinematic vignette + film grain-ish sheen over every scene. */
+#scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% 20%, transparent 40%, rgba(0, 0, 0, 0.55) 100%),
+    radial-gradient(60% 50% at 50% 55%, rgba(255, 255, 255, 0.04), transparent 70%);
+  pointer-events: none;
+}
+
+/* Reusable animated accents ------------------------------------------------- */
+
+.sea {
+  position: absolute;
+  left: -20%; right: -20%;
+  height: 42%;
+  bottom: 0;
+  background:
+    repeating-linear-gradient(90deg,
+      rgba(255,255,255,0.00) 0px,
+      rgba(255,255,255,0.05) 40px,
+      rgba(255,255,255,0.00) 80px);
+  filter: blur(2px);
+  opacity: 0.5;
+  animation: seaShift 14s linear infinite;
+}
+@keyframes seaShift { to { transform: translateX(-80px); } }
+
+.glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  animation: pulse 8s ease-in-out infinite alternate;
+}
+@keyframes pulse { from { opacity: 0.55; } to { opacity: 0.95; } }
+
+.mote {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 236, 190, 0.8);
+  filter: blur(1px);
+  animation: rise 12s linear infinite;
+}
+@keyframes rise {
+  0%   { transform: translateY(20px); opacity: 0; }
+  15%  { opacity: 0.9; }
+  100% { transform: translateY(-320px); opacity: 0; }
+}
+
+/* ---- Per-room environments ------------------------------------------------ */
+
+/* Main Deck — dusk over open water */
+.scene-deck {
+  background:
+    linear-gradient(to bottom,
+      #10183a 0%, #26235a 32%, #5b3b74 52%,
+      #b5623f 68%, #e0894a 76%, #17233f 88%, #0a1122 100%);
+}
+.scene-deck .horizon-glow {
+  position: absolute; left: 0; right: 0; bottom: 30%; height: 18%;
+  background: radial-gradient(60% 100% at 50% 100%, rgba(255,180,110,0.55), transparent 70%);
+  filter: blur(8px);
+}
+
+/* Guest Hallway — warm corridor receding to a vanishing point */
+.scene-hallway {
+  background:
+    radial-gradient(45% 80% at 50% 50%, #3a2a20 0%, #241812 45%, #120b08 100%),
+    linear-gradient(90deg, #0d0806, #1c130d 50%, #0d0806);
+}
+.scene-hallway .corridor {
+  position: absolute; inset: 0;
+  background:
+    conic-gradient(from 0deg at 50% 48%,
+      rgba(0,0,0,0.55), rgba(0,0,0,0) 12%, rgba(0,0,0,0.55) 25%,
+      rgba(0,0,0,0) 38%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0) 62%,
+      rgba(0,0,0,0.55) 75%, rgba(0,0,0,0) 88%, rgba(0,0,0,0.55));
+  opacity: 0.35;
+}
+.scene-hallway .sconce {
+  width: 260px; height: 260px; left: 50%; top: 42%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 170, 90, 0.5);
+  animation: flicker 5s ease-in-out infinite;
+}
+@keyframes flicker {
+  0%,100% { opacity: 0.7; } 45% { opacity: 0.85; }
+  50% { opacity: 0.55; } 55% { opacity: 0.8; }
+}
+
+/* Library — lamplit, dust drifting in the warm pool of light */
+.scene-library {
+  background:
+    radial-gradient(50% 60% at 62% 45%, #2c3b34 0%, #16231e 45%, #0a120f 100%),
+    linear-gradient(to bottom, #0c1512, #060b09);
+}
+.scene-library .lamp {
+  width: 420px; height: 420px; left: 62%; top: 40%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 196, 120, 0.4);
+}
+.scene-library .mote:nth-child(3) { left: 55%; top: 60%; animation-delay: 0s; }
+.scene-library .mote:nth-child(4) { left: 63%; top: 66%; animation-delay: 3s; }
+.scene-library .mote:nth-child(5) { left: 68%; top: 58%; animation-delay: 6s; }
+.scene-library .mote:nth-child(6) { left: 60%; top: 70%; animation-delay: 9s; }
+
+/* Galley — cold steel, steam drifting across */
+.scene-galley {
+  background:
+    linear-gradient(to bottom, #1b2732 0%, #223341 45%, #10171e 100%);
+}
+.scene-galley .steam {
+  position: absolute; left: 20%; bottom: 10%;
+  width: 60%; height: 60%;
+  background: radial-gradient(50% 50% at 50% 100%, rgba(220,235,245,0.18), transparent 70%);
+  filter: blur(14px);
+  animation: steam 16s ease-in-out infinite;
+}
+@keyframes steam {
+  0%   { transform: translate(-10%, 10%) scale(1);   opacity: 0.25; }
+  50%  { transform: translate(10%, -10%) scale(1.2); opacity: 0.5; }
+  100% { transform: translate(-6%, 4%) scale(1);     opacity: 0.25; }
+}
+
+/* Vault — cold, a single overhead spotlight and a slow metallic sheen */
+.scene-vault {
+  background:
+    radial-gradient(40% 55% at 50% 30%, #2a2f3a 0%, #12151c 40%, #05070a 100%);
+}
+.scene-vault .sheen {
+  position: absolute; inset: 0;
+  background: linear-gradient(115deg, transparent 40%, rgba(180,205,230,0.12) 50%, transparent 60%);
+  animation: sheen 9s ease-in-out infinite;
+}
+@keyframes sheen { 0%,100% { transform: translateX(-30%); } 50% { transform: translateX(30%); } }
+
+/* Bridge — night ocean beyond the windows, a sweeping radar */
+.scene-bridge {
+  background:
+    linear-gradient(to bottom, #050b16 0%, #0a1626 55%, #030711 100%);
+}
+.scene-bridge .radar {
+  position: absolute; width: 60vh; height: 60vh; left: 50%; top: 42%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: conic-gradient(rgba(120,230,180,0.28), transparent 30%);
+  animation: sweep 6s linear infinite;
+  opacity: 0.6;
+}
+@keyframes sweep { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.scene-bridge .panel-glow {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 22%;
+  background: linear-gradient(to top, rgba(70,150,200,0.28), transparent);
+}
+
+/* ---- Landing screen (over the deck scene) --------------------------------- */
+
+#landing-screen { position: relative; z-index: 2; background: transparent; }
+
+#landing-screen h1 {
+  font-weight: 700;
+  text-shadow: 0 0 24px rgba(127, 214, 255, 0.35), 0 2px 8px rgba(0, 0, 0, 0.6);
+  animation: titleGlow 6s ease-in-out infinite alternate;
+}
+@keyframes titleGlow {
+  from { text-shadow: 0 0 18px rgba(127,214,255,0.25), 0 2px 8px rgba(0,0,0,0.6); }
+  to   { text-shadow: 0 0 34px rgba(127,214,255,0.55), 0 2px 8px rgba(0,0,0,0.6); }
+}
+#landing-screen p { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7); }
+
+.platform-choice button {
+  background: var(--hud-glass);
+  border: 1px solid var(--hud-border);
+  color: var(--ink);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+  border-radius: 10px;
+  padding: 0.8rem 2.2rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.platform-choice button:hover {
+  transform: translateY(-2px);
+  background: rgba(30, 46, 66, 0.7);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(127, 214, 255, 0.25);
+}
+
+/* ---- Terminal HUD (frosted glass floating over the scene) ----------------- */
+
+#game-screen { position: relative; z-index: 1; gap: 18px; padding: 22px; box-sizing: border-box; }
+
+.theme-mac #terminal-window, .theme-pc #terminal-window {
+  background: var(--hud-glass);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  border: 1px solid var(--hud-border);
+  border-radius: 16px;
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 60px var(--hud-glow);
+  overflow: hidden;
+  animation: hudIn 0.9s ease both;
+}
+@keyframes hudIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+.theme-mac #terminal-titlebar, .theme-pc #terminal-titlebar {
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--ink-dim);
+}
+
+.theme-mac #terminal-output, .theme-pc #terminal-output,
+.theme-mac #terminal-input,  .theme-pc #terminal-input,
+.theme-mac #terminal-input-line, .theme-pc #terminal-input-line {
+  background: transparent;
+  color: var(--ink);
+}
+#terminal-input-line { border-top: 1px solid rgba(255, 255, 255, 0.08); }
+#terminal-prompt, .command-echo { color: var(--accent); }
+
+.output-line { animation: lineIn 0.35s ease both; }
+@keyframes lineIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* Sidebar as a matching glass panel */
+.theme-mac #sidebar, .theme-pc #sidebar {
+  background: var(--hud-glass);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  border: 1px solid var(--hud-border);
+  border-left: 1px solid var(--hud-border);
+  border-radius: 16px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+  animation: hudIn 0.9s ease 0.1s both;
+}
+#sidebar h2 { color: var(--ink); letter-spacing: 0.02em; }
+#sidebar h3 { color: var(--accent); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85; }
+#sidebar-cwd { color: var(--ink-dim); font-family: 'Menlo', 'Consolas', monospace; }
+#sidebar-clues li { animation: lineIn 0.4s ease both; }
+
+/* ---- Ambient-sound toggle -------------------------------------------------- */
+
+#audio-toggle {
+  position: fixed;
+  top: 14px; right: 16px;
+  z-index: 5;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--hud-border);
+  background: var(--hud-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--accent);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+#audio-toggle:hover { transform: scale(1.08); box-shadow: 0 0 0 3px rgba(127, 214, 255, 0.18); }
+#audio-toggle.muted { color: var(--ink-dim); opacity: 0.6; }
+#audio-toggle.muted::after {
+  content: ""; position: absolute; left: 8px; right: 8px; top: 50%;
+  height: 2px; background: currentColor; transform: rotate(-45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-room, .sea, .glow, .mote, .steam, .radar, .sheen,
+  #landing-screen h1, .output-line, #terminal-window, #sidebar {
+    animation: none !important;
+  }
+}

@@ -12,10 +12,23 @@
   const sidebarCwd = document.getElementById('sidebar-cwd');
   const sidebarHelp = document.getElementById('sidebar-help');
   const sidebarClues = document.getElementById('sidebar-clues');
+  const audioToggle = document.getElementById('audio-toggle');
 
   let state = null;
   let history = [];
   let historyIndex = -1;
+  let currentRoom = null;
+
+  // Move the player's environment to whichever room they're currently standing in.
+  // cwdPath[0] is the top-level room id; when at root (between rooms) we keep the
+  // last scene so the backdrop doesn't flicker mid-transition.
+  function applyScene() {
+    const room = state && state.cwdPath && state.cwdPath.length ? state.cwdPath[0] : null;
+    if (room && room !== currentRoom) {
+      currentRoom = room;
+      document.body.dataset.room = room;
+    }
+  }
 
   function printLines(lines) {
     for (const line of lines) {
@@ -75,6 +88,7 @@
     } else {
       printLines(result.outputLines);
     }
+    applyScene();
     renderSidebar();
     persist();
   }
@@ -102,19 +116,45 @@
 
   function startGame(theme) {
     document.body.classList.add(theme === 'mac' ? 'theme-mac' : 'theme-pc');
+    document.body.classList.add('in-game');
     window.localStorage.setItem(THEME_KEY, theme);
     landingScreen.hidden = true;
     gameScreen.hidden = false;
+    if (audioToggle) audioToggle.hidden = false;
 
     const saved = window.localStorage.getItem(SAVE_KEY);
+    state = null;
     if (saved) {
-      state = window.Game.GameState.fromJSON(JSON.parse(saved));
-    } else {
+      try {
+        state = window.Game.GameState.fromJSON(JSON.parse(saved));
+      } catch (err) {
+        // A corrupt or version-incompatible save shouldn't brick the game with a
+        // blank screen — discard it and start a fresh voyage instead.
+        window.localStorage.removeItem(SAVE_KEY);
+        state = null;
+      }
+    }
+    if (!state) {
       state = new window.Game.GameState();
       printLines(window.Rooms.ROOMS.deck.introLines);
     }
+    applyScene();
     renderSidebar();
     inputEl.focus();
+
+    // Ambient ocean + wind. Must be kicked off from this user gesture (the theme
+    // click) so the browser permits audio playback.
+    if (window.Ambience) window.Ambience.start();
+  }
+
+  if (audioToggle) {
+    audioToggle.addEventListener('click', () => {
+      if (!window.Ambience) return;
+      const muted = window.Ambience.toggleMute();
+      audioToggle.classList.toggle('muted', muted);
+      audioToggle.setAttribute('aria-pressed', String(!muted));
+      inputEl.focus();
+    });
   }
 
   document.getElementById('choose-mac').addEventListener('click', () => startGame('mac'));
