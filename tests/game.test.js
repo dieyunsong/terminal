@@ -36,6 +36,29 @@ test('reading the three deck clues unlocks the hallway', () => {
   assert.match(enter.outputLines.join(' '), /hallway/i);
 });
 
+test('cd <room> jumps straight to an unlocked room without cd .. first', () => {
+  const state = new GameState();
+  completeDeck(state);
+  // Standing in /deck, go directly to the hallway (a sibling room) in one step.
+  const enter = state.handleInput('cd hallway');
+  assert.deepEqual(state.cwdPath, ['hallway']);
+  assert.match(enter.outputLines.join(' '), /hallway/i);
+});
+
+test('cd <room> still refuses a locked room', () => {
+  const state = new GameState();
+  completeDeck(state);
+  const blocked = state.handleInput('cd bridge'); // far ahead, still locked
+  assert.deepEqual(state.cwdPath, ['deck']);
+  assert.match(blocked.outputLines[0], /ARIA/);
+});
+
+test('a completed room shows a go-to-next-room objective', () => {
+  const state = new GameState();
+  completeDeck(state);
+  assert.match(state.getSidebarInfo().objective, /cd hallway/);
+});
+
 test('clear alone does not complete the deck', () => {
   const state = new GameState();
   state.handleInput('pwd');

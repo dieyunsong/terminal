@@ -126,7 +126,7 @@ const ROOMS = {
       'ARIA: Read a clue with `cat [file]`, for example `cat earring.txt`.',
       'ARIA: Three clues are on deck -- read all three (earring.txt, napkin.txt, overturned-chair.txt) to move on.'
     ],
-    completeLines: ['ARIA: You have the scene in mind. The Guest Hallway is now accessible. Try `cd ..` and then `cd hallway`.'],
+    completeLines: ['ARIA: You have the scene in mind. The Guest Hallway is now open -- just type `cd hallway` to head there.'],
     checkCompletion(trackers) {
       const need = ['earring.txt', 'napkin.txt', 'overturned-chair.txt'];
       return need.every((f) => trackers.filesRead.has(f));
@@ -146,7 +146,7 @@ const ROOMS = {
       'ARIA: Forgot the cabin names? `ls` lists all three doors.',
       'ARIA: After a cabin, `cd ..` returns to the hallway before the next one. Visit all three.'
     ],
-    completeLines: ['ARIA: All three cabins checked. The Library is now accessible. Try `cd ..` and then `cd library`.'],
+    completeLines: ['ARIA: All three cabins checked. The Library is now open -- just type `cd library` to head there.'],
     checkCompletion(trackers) {
       return trackers.visitedCabins.size >= 3;
     }
@@ -165,7 +165,7 @@ const ROOMS = {
       'ARIA: Read one with `cat [file]`, e.g. `cat margot-diary.txt`.',
       'ARIA: Three files hold the motive -- cat the diary, the log, and the note.'
     ],
-    completeLines: ['ARIA: Well. That escalated. The Galley is now accessible. Try `cd ..` and then `cd galley`.'],
+    completeLines: ['ARIA: Well. That escalated. The Galley is now open -- just type `cd galley` to head there.'],
     checkCompletion(trackers) {
       const need = ['margot-diary.txt', 'captains-log.txt', 'antoine-note.txt'];
       return need.every((f) => trackers.filesRead.has(f));
@@ -185,7 +185,7 @@ const ROOMS = {
       'ARIA: Step inside it: `cd evidence`.',
       'ARIA: Log the case with `touch case-notes.txt` inside the evidence folder.'
     ],
-    completeLines: ['ARIA: Evidence locker established. The Vault is now accessible. Try `cd ..` and then `cd vault`.'],
+    completeLines: ['ARIA: Evidence locker established. The Vault is now open -- just type `cd vault` to head there.'],
     checkCompletion(trackers, fs, FS) {
       const evidence = FS.getNode(fs, ['galley', 'evidence']);
       if (!evidence || evidence.type !== 'dir') return false;
@@ -211,7 +211,7 @@ const ROOMS = {
       'ARIA: Now move the ledger there too: `mv ledger.txt /galley/evidence`.',
       'ARIA: `/galley/evidence` is a full path -- it works from anywhere on the yacht.'
     ],
-    completeLines: ['ARIA: Evidence secured. The Bridge is now accessible. Try `cd ..` and then `cd bridge`.'],
+    completeLines: ['ARIA: Evidence secured. The Bridge is now open -- just type `cd bridge` to head there.'],
     checkCompletion(trackers, fs, FS) {
       const willCopy = FS.getNode(fs, ['galley', 'evidence', 'will-amendment.txt']);
       const ledgerStillInVault = FS.getNode(fs, ['vault', 'ledger.txt']);

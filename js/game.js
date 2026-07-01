@@ -57,9 +57,19 @@ class GameState {
     const roomId = this.currentRoomId() || 'deck';
     const room = Rooms.ROOMS[roomId] || Rooms.ROOMS.deck;
     const hintTotal = (room.hints || []).length;
+    let objective = room.objective || '';
+    // Once a room is done, replace the objective with a clear "go here next"
+    // prompt so the player is never left wondering how to advance.
+    if (this.completedRooms.has(roomId)) {
+      const idx = Rooms.ROOM_ORDER.indexOf(roomId);
+      const next = Rooms.ROOM_ORDER[idx + 1];
+      objective = next
+        ? '✓ Done here. Head to the next room: type  cd ' + next
+        : '✓ Case closed.';
+    }
     return {
       title: room.title,
-      objective: room.objective || '',
+      objective: objective,
       helpLines: room.helpLines,
       cluesCollected: Array.from(this.filesRead),
       cwd: FS.pwd(this.cwdPath),
@@ -100,7 +110,22 @@ class GameState {
       return this.accuse(trimmed.replace(/^accuse\b/i, ''));
     }
 
-    const result = Commands.executeCommand(this.fs, this.cwdPath, raw);
+    // Forgiving room navigation: `cd <room>` jumps straight to any top-level
+    // room from wherever you're standing, so players don't have to `cd ..`
+    // back to the corridor first. Normal `cd`, `cd ..`, and `cd <subfolder>`
+    // are untouched (a real child folder always wins).
+    let effective = raw;
+    const cdRoom = trimmed.match(/^cd\s+([A-Za-z][\w-]*)$/);
+    if (cdRoom) {
+      const target = cdRoom[1];
+      const here = FS.getNode(this.fs, this.cwdPath);
+      const isChildHere = here && here.type === 'dir' && !!here.children[target];
+      if (Rooms.ROOM_ORDER.indexOf(target) !== -1 && !isChildHere) {
+        effective = 'cd /' + target;
+      }
+    }
+
+    const result = Commands.executeCommand(this.fs, this.cwdPath, effective);
     const outputLines = result.outputLines.slice();
     const clearScreen = result.clearScreen;
 
