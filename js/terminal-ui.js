@@ -22,11 +22,15 @@
   // Move the player's environment to whichever room they're currently standing in.
   // cwdPath[0] is the top-level room id; when at root (between rooms) we keep the
   // last scene so the backdrop doesn't flicker mid-transition.
+  const nameplate = document.getElementById('room-nameplate');
+
   function applyScene() {
     const room = state && state.cwdPath && state.cwdPath.length ? state.cwdPath[0] : null;
     if (room && room !== currentRoom) {
       currentRoom = room;
       document.body.dataset.room = room;
+      const roomDef = window.Rooms && window.Rooms.ROOMS[room];
+      if (nameplate && roomDef) nameplate.textContent = roomDef.title;
     }
   }
 
@@ -90,6 +94,7 @@
     }
     applyScene();
     renderSidebar();
+    if (result.won) document.body.classList.add('solved');
     persist();
   }
 
@@ -140,6 +145,7 @@
     }
     applyScene();
     renderSidebar();
+    if (state.won) document.body.classList.add('solved');
     inputEl.focus();
 
     // Ambient ocean + wind. Must be kicked off from this user gesture (the theme

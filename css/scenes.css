@@ -1,324 +1,232 @@
 /* ============================================================================
-   S/V Segfault — cinematic atmosphere layer
-   A full-viewport scene sits behind a frosted-glass terminal HUD. Each room is
-   its own animated environment; completing/entering a room crossfades the
-   backdrop so the player is carried through the yacht. Pure CSS, GPU-friendly
-   (opacity/transform only), no assets.
+   S/V Segfault — luxury yacht atmosphere layer
+   A full-viewport illustrated SVG room (js/scenery.js) stays visible on an
+   upper "stage"; a frosted-glass console sits beneath it. Rooms crossfade as
+   the player moves through the yacht. Animated cast avatars in the sidebar.
+   Pure CSS/SVG, GPU-friendly, no assets, no dependencies.
    ============================================================================ */
 
 :root {
-  --hud-glass: rgba(10, 16, 26, 0.55);
-  --hud-border: rgba(255, 255, 255, 0.12);
-  --hud-glow: rgba(120, 200, 255, 0.10);
+  --hud-glass: rgba(9, 14, 22, 0.62);
+  --hud-border: rgba(255, 255, 255, 0.14);
+  --gold: #e8c25a;
   --ink: #eef3f8;
-  --ink-dim: rgba(238, 243, 248, 0.62);
+  --ink-dim: rgba(238, 243, 248, 0.6);
   --accent: #7fd6ff;
 }
 
 html, body { height: 100%; }
-
-body {
-  background: #05070c;
-  color: var(--ink);
-  overflow: hidden;
-}
+body { background: #04060b; color: var(--ink); overflow: hidden; }
 
 /* ---- Scene backdrop -------------------------------------------------------- */
 
-#scene {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
+#scene { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 
 .scene-room {
-  position: absolute;
-  inset: -4%;                 /* bleed so the slow drift never shows an edge */
+  position: absolute; inset: 0;
   opacity: 0;
-  transition: opacity 1.6s ease;
-  will-change: opacity, transform;
-  animation: sceneDrift 42s ease-in-out infinite alternate;
+  transition: opacity 1.4s ease;
+  will-change: opacity;
 }
+.scene-room svg { width: 100%; height: 100%; display: block; }
 
-/* Active room: default to the deck before the game starts, then follow
-   body[data-room]. */
 body:not([data-room]) .scene-deck,
 body[data-room="deck"]    .scene-deck,
 body[data-room="hallway"] .scene-hallway,
 body[data-room="library"] .scene-library,
 body[data-room="galley"]  .scene-galley,
 body[data-room="vault"]   .scene-vault,
-body[data-room="bridge"]  .scene-bridge {
-  opacity: 1;
-}
+body[data-room="bridge"]  .scene-bridge { opacity: 1; }
 
-@keyframes sceneDrift {
-  from { transform: scale(1.02) translate3d(0, 0, 0); }
-  to   { transform: scale(1.08) translate3d(-1.5%, -1%, 0); }
-}
-
-/* Soft cinematic vignette + film grain-ish sheen over every scene. */
+/* Cinematic vignette on top of every scene. */
 #scene::after {
-  content: "";
-  position: absolute;
-  inset: 0;
+  content: ""; position: absolute; inset: 0; pointer-events: none;
   background:
-    radial-gradient(120% 90% at 50% 20%, transparent 40%, rgba(0, 0, 0, 0.55) 100%),
-    radial-gradient(60% 50% at 50% 55%, rgba(255, 255, 255, 0.04), transparent 70%);
-  pointer-events: none;
+    radial-gradient(130% 100% at 50% 8%, transparent 46%, rgba(0,0,0,0.5) 100%),
+    linear-gradient(to bottom, rgba(0,0,0,0.15), transparent 30%);
 }
 
-/* Reusable animated accents ------------------------------------------------- */
+/* ---- SVG animation vocabulary --------------------------------------------- */
 
-.sea {
-  position: absolute;
-  left: -20%; right: -20%;
-  height: 42%;
-  bottom: 0;
-  background:
-    repeating-linear-gradient(90deg,
-      rgba(255,255,255,0.00) 0px,
-      rgba(255,255,255,0.05) 40px,
-      rgba(255,255,255,0.00) 80px);
-  filter: blur(2px);
-  opacity: 0.5;
-  animation: seaShift 14s linear infinite;
-}
-@keyframes seaShift { to { transform: translateX(-80px); } }
+.twinkle   { animation: twinkle 3.5s ease-in-out infinite; }
+.glowPulse { animation: glowPulse 6s ease-in-out infinite alternate; }
+.flick     { animation: flick 3.2s ease-in-out infinite; transform-box: fill-box; }
+.waveA     { animation: waveA 7s linear infinite; transform-box: view-box; }
+.waveB     { animation: waveB 10s linear infinite; transform-box: view-box; }
+.swing     { animation: swing 4.5s ease-in-out infinite; transform-box: view-box; }
+.sway      { animation: sway 8s ease-in-out infinite; transform-box: view-box; }
+.rain      { animation: rain 0.9s linear infinite; transform-box: view-box; }
+.floaty    { animation: floaty 9s ease-in-out infinite; transform-box: view-box; }
+.steam     { animation: steam 6s ease-in-out infinite; transform-box: fill-box; }
+.spin      { animation: spin 4s linear infinite; }
+.spinSlow  { animation: spinSlow 46s linear infinite; }
+.shimmer   { animation: shimmer 2.6s ease-in-out infinite; transform-box: fill-box; }
+.blink     { animation: ledblink 2.4s steps(1) infinite; transform-box: fill-box; }
+.laser     { animation: laser 3s ease-in-out infinite; }
 
-.glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(40px);
-  animation: pulse 8s ease-in-out infinite alternate;
-}
-@keyframes pulse { from { opacity: 0.55; } to { opacity: 0.95; } }
+@keyframes twinkle   { 0%,100% { opacity: 0.2; } 50% { opacity: 1; } }
+@keyframes glowPulse { from { opacity: 0.5; } to { opacity: 1; } }
+@keyframes flick     { 0%,100% { opacity: 1; } 42% { opacity: 0.6; } 47% { opacity: 0.95; } 55% { opacity: 0.7; } }
+@keyframes waveA     { to { transform: translateX(-160px); } }
+@keyframes waveB     { to { transform: translateX(-240px); } }
+@keyframes swing     { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+@keyframes sway      { 0%,100% { transform: rotate(-1.4deg); } 50% { transform: rotate(1.4deg); } }
+@keyframes rain      { from { transform: translateY(-20px); opacity: 0; } 20% { opacity: 0.6; } to { transform: translateY(360px); opacity: 0; } }
+@keyframes floaty    { 0%,100% { transform: translateY(0); opacity: 0.3; } 50% { transform: translateY(-26px); opacity: 0.9; } }
+@keyframes steam     { 0% { transform: translateY(10px) scale(0.9); opacity: 0; } 30% { opacity: 0.55; } 100% { transform: translateY(-120px) scale(1.5); opacity: 0; } }
+@keyframes spin      { to { transform: rotate(360deg); } }
+@keyframes spinSlow  { to { transform: rotate(360deg); } }
+@keyframes shimmer   { 0%,100% { opacity: 0.75; } 50% { opacity: 1; } }
+@keyframes ledblink  { 0%,49% { opacity: 1; } 50%,100% { opacity: 0.2; } }
+@keyframes laser     { 0%,100% { opacity: 0.35; } 50% { opacity: 0.7; } }
 
-.mote {
-  position: absolute;
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: rgba(255, 236, 190, 0.8);
-  filter: blur(1px);
-  animation: rise 12s linear infinite;
-}
-@keyframes rise {
-  0%   { transform: translateY(20px); opacity: 0; }
-  15%  { opacity: 0.9; }
-  100% { transform: translateY(-320px); opacity: 0; }
-}
-
-/* ---- Per-room environments ------------------------------------------------ */
-
-/* Main Deck — dusk over open water */
-.scene-deck {
-  background:
-    linear-gradient(to bottom,
-      #10183a 0%, #26235a 32%, #5b3b74 52%,
-      #b5623f 68%, #e0894a 76%, #17233f 88%, #0a1122 100%);
-}
-.scene-deck .horizon-glow {
-  position: absolute; left: 0; right: 0; bottom: 30%; height: 18%;
-  background: radial-gradient(60% 100% at 50% 100%, rgba(255,180,110,0.55), transparent 70%);
-  filter: blur(8px);
-}
-
-/* Guest Hallway — warm corridor receding to a vanishing point */
-.scene-hallway {
-  background:
-    radial-gradient(45% 80% at 50% 50%, #3a2a20 0%, #241812 45%, #120b08 100%),
-    linear-gradient(90deg, #0d0806, #1c130d 50%, #0d0806);
-}
-.scene-hallway .corridor {
-  position: absolute; inset: 0;
-  background:
-    conic-gradient(from 0deg at 50% 48%,
-      rgba(0,0,0,0.55), rgba(0,0,0,0) 12%, rgba(0,0,0,0.55) 25%,
-      rgba(0,0,0,0) 38%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0) 62%,
-      rgba(0,0,0,0.55) 75%, rgba(0,0,0,0) 88%, rgba(0,0,0,0.55));
-  opacity: 0.35;
-}
-.scene-hallway .sconce {
-  width: 260px; height: 260px; left: 50%; top: 42%;
-  transform: translate(-50%, -50%);
-  background: rgba(255, 170, 90, 0.5);
-  animation: flicker 5s ease-in-out infinite;
-}
-@keyframes flicker {
-  0%,100% { opacity: 0.7; } 45% { opacity: 0.85; }
-  50% { opacity: 0.55; } 55% { opacity: 0.8; }
-}
-
-/* Library — lamplit, dust drifting in the warm pool of light */
-.scene-library {
-  background:
-    radial-gradient(50% 60% at 62% 45%, #2c3b34 0%, #16231e 45%, #0a120f 100%),
-    linear-gradient(to bottom, #0c1512, #060b09);
-}
-.scene-library .lamp {
-  width: 420px; height: 420px; left: 62%; top: 40%;
-  transform: translate(-50%, -50%);
-  background: rgba(255, 196, 120, 0.4);
-}
-.scene-library .mote:nth-child(3) { left: 55%; top: 60%; animation-delay: 0s; }
-.scene-library .mote:nth-child(4) { left: 63%; top: 66%; animation-delay: 3s; }
-.scene-library .mote:nth-child(5) { left: 68%; top: 58%; animation-delay: 6s; }
-.scene-library .mote:nth-child(6) { left: 60%; top: 70%; animation-delay: 9s; }
-
-/* Galley — cold steel, steam drifting across */
-.scene-galley {
-  background:
-    linear-gradient(to bottom, #1b2732 0%, #223341 45%, #10171e 100%);
-}
-.scene-galley .steam {
-  position: absolute; left: 20%; bottom: 10%;
-  width: 60%; height: 60%;
-  background: radial-gradient(50% 50% at 50% 100%, rgba(220,235,245,0.18), transparent 70%);
-  filter: blur(14px);
-  animation: steam 16s ease-in-out infinite;
-}
-@keyframes steam {
-  0%   { transform: translate(-10%, 10%) scale(1);   opacity: 0.25; }
-  50%  { transform: translate(10%, -10%) scale(1.2); opacity: 0.5; }
-  100% { transform: translate(-6%, 4%) scale(1);     opacity: 0.25; }
-}
-
-/* Vault — cold, a single overhead spotlight and a slow metallic sheen */
-.scene-vault {
-  background:
-    radial-gradient(40% 55% at 50% 30%, #2a2f3a 0%, #12151c 40%, #05070a 100%);
-}
-.scene-vault .sheen {
-  position: absolute; inset: 0;
-  background: linear-gradient(115deg, transparent 40%, rgba(180,205,230,0.12) 50%, transparent 60%);
-  animation: sheen 9s ease-in-out infinite;
-}
-@keyframes sheen { 0%,100% { transform: translateX(-30%); } 50% { transform: translateX(30%); } }
-
-/* Bridge — night ocean beyond the windows, a sweeping radar */
-.scene-bridge {
-  background:
-    linear-gradient(to bottom, #050b16 0%, #0a1626 55%, #030711 100%);
-}
-.scene-bridge .radar {
-  position: absolute; width: 60vh; height: 60vh; left: 50%; top: 42%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: conic-gradient(rgba(120,230,180,0.28), transparent 30%);
-  animation: sweep 6s linear infinite;
-  opacity: 0.6;
-}
-@keyframes sweep { to { transform: translate(-50%, -50%) rotate(360deg); } }
-.scene-bridge .panel-glow {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 22%;
-  background: linear-gradient(to top, rgba(70,150,200,0.28), transparent);
-}
-
-/* ---- Landing screen (over the deck scene) --------------------------------- */
+/* ---- Landing screen -------------------------------------------------------- */
 
 #landing-screen { position: relative; z-index: 2; background: transparent; }
-
-#landing-screen h1 {
-  font-weight: 700;
-  text-shadow: 0 0 24px rgba(127, 214, 255, 0.35), 0 2px 8px rgba(0, 0, 0, 0.6);
-  animation: titleGlow 6s ease-in-out infinite alternate;
-}
-@keyframes titleGlow {
-  from { text-shadow: 0 0 18px rgba(127,214,255,0.25), 0 2px 8px rgba(0,0,0,0.6); }
-  to   { text-shadow: 0 0 34px rgba(127,214,255,0.55), 0 2px 8px rgba(0,0,0,0.6); }
-}
-#landing-screen p { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7); }
-
-.platform-choice button {
+.landing-inner {
+  padding: 2.4rem 3rem;
+  border-radius: 20px;
   background: var(--hud-glass);
   border: 1px solid var(--hud-border);
-  color: var(--ink);
-  backdrop-filter: blur(10px) saturate(130%);
-  -webkit-backdrop-filter: blur(10px) saturate(130%);
-  border-radius: 10px;
-  padding: 0.8rem 2.2rem;
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+  text-align: center;
+}
+#landing-screen h1 {
+  font-weight: 800; letter-spacing: 0.18em; margin: 0 0 0.2rem;
+  background: linear-gradient(180deg, #fff 0%, var(--gold) 120%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 22px rgba(232,194,90,0.35));
+  animation: titleGlow 6s ease-in-out infinite alternate;
+}
+@keyframes titleGlow { from { filter: drop-shadow(0 0 14px rgba(232,194,90,0.25)); } to { filter: drop-shadow(0 0 30px rgba(232,194,90,0.6)); } }
+.platform-choice button {
+  background: rgba(20,30,44,0.7); border: 1px solid var(--hud-border); color: var(--ink);
+  border-radius: 10px; padding: 0.8rem 2.2rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 .platform-choice button:hover {
-  transform: translateY(-2px);
-  background: rgba(30, 46, 66, 0.7);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(127, 214, 255, 0.25);
+  transform: translateY(-2px); background: rgba(40,56,78,0.8);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.45), 0 0 0 1px rgba(232,194,90,0.4);
 }
 
-/* ---- Terminal HUD (frosted glass floating over the scene) ----------------- */
+/* ---- Game layout: stage on top, console below ----------------------------- */
 
-#game-screen { position: relative; z-index: 1; gap: 18px; padding: 22px; box-sizing: border-box; }
+#game-screen {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  height: 100vh; box-sizing: border-box;
+  padding: 20px; gap: 16px;
+}
 
-.theme-mac #terminal-window, .theme-pc #terminal-window {
+#stage { position: relative; flex: 1 1 auto; min-height: 26vh; }
+
+#room-nameplate {
+  position: absolute; left: 6px; bottom: 6px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.9rem; letter-spacing: 0.06em;
+  color: #fff; padding: 0.35rem 1.1rem;
+  background: linear-gradient(90deg, rgba(9,14,22,0.7), rgba(9,14,22,0));
+  border-left: 3px solid var(--gold);
+  text-shadow: 0 2px 10px rgba(0,0,0,0.7);
+  animation: nameIn 0.9s ease both;
+}
+@keyframes nameIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+
+#console { flex: 0 0 auto; height: 58vh; display: flex; gap: 16px; min-height: 0; }
+
+/* Frosted-glass panels */
+.theme-mac #terminal-window, .theme-pc #terminal-window,
+.theme-mac #sidebar, .theme-pc #sidebar {
   background: var(--hud-glass);
-  backdrop-filter: blur(18px) saturate(135%);
-  -webkit-backdrop-filter: blur(18px) saturate(135%);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
   border: 1px solid var(--hud-border);
   border-radius: 16px;
-  box-shadow:
-    0 30px 70px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 0 60px var(--hud-glow);
-  overflow: hidden;
-  animation: hudIn 0.9s ease both;
+  box-shadow: 0 26px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.08);
+  animation: hudIn 0.8s ease both;
 }
-@keyframes hudIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+#terminal-window { overflow: hidden; }
+#sidebar { overflow-y: auto; }
+@keyframes hudIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
 .theme-mac #terminal-titlebar, .theme-pc #terminal-titlebar {
-  background: rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   color: var(--ink-dim);
+  display: flex; align-items: center; gap: 8px;
 }
-
 .theme-mac #terminal-output, .theme-pc #terminal-output,
 .theme-mac #terminal-input,  .theme-pc #terminal-input,
 .theme-mac #terminal-input-line, .theme-pc #terminal-input-line {
-  background: transparent;
-  color: var(--ink);
+  background: transparent; color: var(--ink);
 }
-#terminal-input-line { border-top: 1px solid rgba(255, 255, 255, 0.08); }
+#terminal-input-line { border-top: 1px solid rgba(255,255,255,0.08); }
 #terminal-prompt, .command-echo { color: var(--accent); }
-
-.output-line { animation: lineIn 0.35s ease both; }
+.output-line { animation: lineIn 0.3s ease both; }
 @keyframes lineIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
-/* Sidebar as a matching glass panel */
-.theme-mac #sidebar, .theme-pc #sidebar {
-  background: var(--hud-glass);
-  backdrop-filter: blur(18px) saturate(135%);
-  -webkit-backdrop-filter: blur(18px) saturate(135%);
-  border: 1px solid var(--hud-border);
-  border-left: 1px solid var(--hud-border);
-  border-radius: 16px;
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  color: var(--ink);
-  animation: hudIn 0.9s ease 0.1s both;
-}
-#sidebar h2 { color: var(--ink); letter-spacing: 0.02em; }
-#sidebar h3 { color: var(--accent); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85; }
+#sidebar { color: var(--ink); }
+#sidebar h2 { color: #fff; letter-spacing: 0.02em; margin-bottom: 0.2rem; }
+#sidebar h3 { color: var(--gold); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.09em; opacity: 0.9; margin: 1rem 0 0.4rem; }
 #sidebar-cwd { color: var(--ink-dim); font-family: 'Menlo', 'Consolas', monospace; }
 #sidebar-clues li { animation: lineIn 0.4s ease both; }
+
+/* ---- Cast avatars ---------------------------------------------------------- */
+
+.avatar-slot { display: inline-flex; width: 26px; height: 26px; }
+.avatar-slot .avatar { width: 26px; height: 26px; }
+.avatar { display: block; animation: bob 5s ease-in-out infinite; }
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+#cast { display: flex; flex-direction: column; gap: 8px; }
+.cast-member { display: flex; align-items: center; gap: 10px; opacity: 0.95; }
+.cast-portrait { width: 46px; height: 46px; flex: 0 0 46px; }
+.cast-portrait .avatar { width: 46px; height: 46px; }
+.cast-name { display: block; font-weight: 600; font-size: 0.9rem; }
+.cast-role { display: block; font-size: 0.74rem; color: var(--ink-dim); }
+
+/* Reggie stays a mystery until the case is solved. */
+.cast-reggie { filter: grayscale(1) brightness(0.5); }
+.cast-reggie .cast-name { color: var(--ink-dim); }
+.cast-reggie .cast-name::after { content: " ?"; }
+body.solved .cast-reggie { filter: none; animation: reveal 1s ease both; }
+body.solved .cast-reggie .cast-name::after { content: ""; }
+@keyframes reveal { from { transform: scale(0.8); filter: brightness(2); } to { transform: none; filter: none; } }
+
+/* Eyelid blink shared by the suspect faces */
+.lid { transform-box: fill-box; transform-origin: top; transform: scaleY(0); animation: blinkLid 5s infinite; }
+.avatar-margot  { --skin: #f0c9a8; }
+.avatar-antoine { --skin: #e9b98f; }
+.avatar-vasquez { --skin: #c98f6a; }
+.avatar-reggie  { --skin: #eab98f; }
+.avatar-margot  .lid { fill: #f0c9a8; }
+.avatar-antoine .lid { fill: #e9b98f; }
+.avatar-vasquez .lid { fill: #c98f6a; }
+.avatar-reggie  .lid { fill: #eab98f; }
+@keyframes blinkLid { 0%,94%,100% { transform: scaleY(0); } 96% { transform: scaleY(1); } }
+.cast-antoine .lid { animation-delay: 1.3s; }
+.cast-vasquez .lid { animation-delay: 2.6s; }
+.cast-reggie  .lid { animation-delay: 0.7s; }
+
+/* ARIA orb */
+.avatar-aria .ring-pulse { animation: ariaRing 3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.avatar-aria .ariaEye { animation: ariaLook 6s ease-in-out infinite; transform-box: fill-box; }
+@keyframes ariaRing { 0%,100% { opacity: 0.5; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1.04); } }
+@keyframes ariaLook { 0%,100% { transform: translateX(0); } 30% { transform: translateX(2px); } 60% { transform: translateX(-2px); } }
 
 /* ---- Ambient-sound toggle -------------------------------------------------- */
 
 #audio-toggle {
-  position: fixed;
-  top: 14px; right: 16px;
-  z-index: 5;
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  border: 1px solid var(--hud-border);
-  background: var(--hud-glass);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: var(--accent);
-  font-size: 1.1rem;
-  cursor: pointer;
+  position: fixed; top: 14px; right: 16px; z-index: 5;
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 1px solid var(--hud-border); background: var(--hud-glass);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  color: var(--accent); font-size: 1.1rem; cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
-#audio-toggle:hover { transform: scale(1.08); box-shadow: 0 0 0 3px rgba(127, 214, 255, 0.18); }
+#audio-toggle:hover { transform: scale(1.08); box-shadow: 0 0 0 3px rgba(127,214,255,0.18); }
 #audio-toggle.muted { color: var(--ink-dim); opacity: 0.6; }
 #audio-toggle.muted::after {
   content: ""; position: absolute; left: 8px; right: 8px; top: 50%;
@@ -326,8 +234,7 @@ body[data-room="bridge"]  .scene-bridge {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scene-room, .sea, .glow, .mote, .steam, .radar, .sheen,
-  #landing-screen h1, .output-line, #terminal-window, #sidebar {
-    animation: none !important;
-  }
+  #scene *, .avatar *, .avatar, .output-line, #terminal-window, #sidebar, #room-nameplate,
+  #landing-screen h1 { animation: none !important; }
+  .lid { transform: scaleY(0); }
 }

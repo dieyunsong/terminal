@@ -11,47 +11,54 @@
 </head>
 <body>
 
-<div id="scene" aria-hidden="true">
-  <div class="scene-room scene-deck"><div class="glow horizon-glow"></div><div class="sea"></div></div>
-  <div class="scene-room scene-hallway"><div class="corridor"></div><div class="glow sconce"></div></div>
-  <div class="scene-room scene-library"><div class="glow lamp"></div><div class="mote"></div><div class="mote"></div><div class="mote"></div><div class="mote"></div></div>
-  <div class="scene-room scene-galley"><div class="steam"></div></div>
-  <div class="scene-room scene-vault"><div class="sheen"></div></div>
-  <div class="scene-room scene-bridge"><div class="radar"></div><div class="panel-glow"></div><div class="sea"></div></div>
-</div>
+<!-- Full-viewport animated backdrop. scenery.js injects one illustrated SVG
+     scene per room; the active one is chosen by body[data-room]. -->
+<div id="scene" aria-hidden="true"></div>
 
 <button id="audio-toggle" type="button" aria-label="Toggle ambient sound" aria-pressed="true" hidden>&#9835;</button>
 
 <section id="landing-screen">
-  <h1>S/V SEGFAULT</h1>
-  <p class="tagline">A Terminal Murder Mystery</p>
-  <p>Learn the command line. Solve the case. Survive the love triangle.</p>
-  <p>Are you playing on a Mac or a PC?</p>
-  <div class="platform-choice">
-    <button id="choose-mac" type="button">Mac</button>
-    <button id="choose-pc" type="button">PC</button>
+  <div class="landing-inner">
+    <h1>S/V SEGFAULT</h1>
+    <p class="tagline">A Terminal Murder Mystery</p>
+    <p>Learn the command line. Solve the case. Survive the love triangle.</p>
+    <p>Are you playing on a Mac or a PC?</p>
+    <div class="platform-choice">
+      <button id="choose-mac" type="button">Mac</button>
+      <button id="choose-pc" type="button">PC</button>
+    </div>
   </div>
 </section>
 
 <section id="game-screen" hidden>
-  <div id="terminal-window">
-    <div id="terminal-titlebar">
-      <span id="terminal-title">ARIA Terminal</span>
-    </div>
-    <div id="terminal-output" aria-live="polite"></div>
-    <div id="terminal-input-line">
-      <span id="terminal-prompt">$</span>
-      <input id="terminal-input" type="text" autocomplete="off" spellcheck="false" aria-label="Terminal command input">
-    </div>
+  <!-- The animated room stays visible up here; the console sits below it. -->
+  <div id="stage">
+    <div id="room-nameplate"></div>
   </div>
-  <aside id="sidebar">
-    <h2 id="sidebar-room-title"></h2>
-    <p id="sidebar-cwd"></p>
-    <h3>Useful commands here</h3>
-    <ul id="sidebar-help"></ul>
-    <h3>Clues collected</h3>
-    <ul id="sidebar-clues"></ul>
-  </aside>
+
+  <div id="console">
+    <div id="terminal-window">
+      <div id="terminal-titlebar">
+        <span id="aria-avatar" class="avatar-slot" aria-hidden="true"></span>
+        <span id="terminal-title">ARIA Terminal</span>
+      </div>
+      <div id="terminal-output" aria-live="polite"></div>
+      <div id="terminal-input-line">
+        <span id="terminal-prompt">$</span>
+        <input id="terminal-input" type="text" autocomplete="off" spellcheck="false" aria-label="Terminal command input">
+      </div>
+    </div>
+    <aside id="sidebar">
+      <h2 id="sidebar-room-title"></h2>
+      <p id="sidebar-cwd"></p>
+      <h3>Useful commands here</h3>
+      <ul id="sidebar-help"></ul>
+      <h3>Clues collected</h3>
+      <ul id="sidebar-clues"></ul>
+      <h3>Aboard the yacht</h3>
+      <div id="cast"></div>
+    </aside>
+  </div>
 </section>
 
 <script src="js/filesystem.js"></script>
@@ -59,6 +66,8 @@
 <script src="js/rooms.js"></script>
 <script src="js/game.js"></script>
 <script src="js/audio.js"></script>
+<script src="js/scenery.js"></script>
+<script src="js/avatars.js"></script>
 <script src="js/terminal-ui.js"></script>
 </body>
 </html>
