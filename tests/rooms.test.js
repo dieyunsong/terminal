@@ -15,10 +15,26 @@ test('every room id in ROOM_ORDER has a matching ROOMS entry', () => {
   }
 });
 
-test('deck completes only once pwd, ls, and clear have all been used', () => {
+test('deck completes only once all three deck clues have been read', () => {
   const room = Rooms.ROOMS.deck;
-  assert.equal(room.checkCompletion({ commandsUsedThisRoom: new Set(['pwd', 'ls']) }), false);
-  assert.equal(room.checkCompletion({ commandsUsedThisRoom: new Set(['pwd', 'ls', 'clear']) }), true);
+  assert.equal(room.checkCompletion({ filesRead: new Set(['earring.txt', 'napkin.txt']) }), false);
+  assert.equal(
+    room.checkCompletion({ filesRead: new Set(['earring.txt', 'napkin.txt', 'overturned-chair.txt']) }),
+    true
+  );
+});
+
+test('every room exposes an objective string', () => {
+  for (const id of Rooms.ROOM_ORDER) {
+    assert.equal(typeof Rooms.ROOMS[id].objective, 'string');
+    assert.ok(Rooms.ROOMS[id].objective.length > 0, id + ' should have an objective');
+  }
+});
+
+test('ACCUSATION names Reggie as the culprit', () => {
+  assert.equal(Rooms.ACCUSATION.correct, 'reggie');
+  assert.ok(Rooms.ACCUSATION.suspects.includes('reggie'));
+  assert.equal(Rooms.ACCUSATION.suspects.length, 4);
 });
 
 test('hallway completes only once all three cabins are visited', () => {
@@ -74,4 +90,13 @@ test('buildInitialFilesystem returns a fresh independent tree each call', () => 
   const fsB = Rooms.buildInitialFilesystem();
   FS.mkdir(fsA, ['galley'], 'evidence');
   assert.equal(fsB.children.galley.children.evidence, undefined);
+});
+
+test('every room provides exactly three hints', () => {
+  for (const id of Rooms.ROOM_ORDER) {
+    const hints = Rooms.ROOMS[id].hints;
+    assert.ok(Array.isArray(hints), id + ' should have a hints array');
+    assert.equal(hints.length, 3, id + ' should have 3 hints');
+    hints.forEach((h) => assert.equal(typeof h, 'string'));
+  }
 });

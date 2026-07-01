@@ -10,6 +10,7 @@
   const inputEl = document.getElementById('terminal-input');
   const sidebarTitle = document.getElementById('sidebar-room-title');
   const sidebarCwd = document.getElementById('sidebar-cwd');
+  const sidebarObjective = document.getElementById('sidebar-objective');
   const sidebarHelp = document.getElementById('sidebar-help');
   const sidebarClues = document.getElementById('sidebar-clues');
   const audioToggle = document.getElementById('audio-toggle');
@@ -55,11 +56,18 @@
     const info = state.getSidebarInfo();
     sidebarTitle.textContent = info.title;
     sidebarCwd.textContent = info.cwd;
+    if (sidebarObjective) sidebarObjective.textContent = info.objective || '';
 
     sidebarHelp.innerHTML = '';
     for (const line of info.helpLines) {
       const li = document.createElement('li');
       li.textContent = line;
+      sidebarHelp.appendChild(li);
+    }
+    if (typeof info.hintsRemaining === 'number') {
+      const li = document.createElement('li');
+      li.className = 'hint-line';
+      li.textContent = 'hint - reveal a clue (' + info.hintsRemaining + ' left here)';
       sidebarHelp.appendChild(li);
     }
 

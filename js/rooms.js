@@ -112,12 +112,24 @@ const ROOMS = {
     introLines: [
       'You wake up on the Main Deck of the S/V Segfault, the taste of champagne and confusion in your mouth.',
       "The party noise has stopped. Reggie Sterling -- yacht owner, tech billionaire, your host for tonight's engagement gala -- is nowhere to be seen. His chair lies overturned.",
-      'A voice crackles from a nearby speaker: "Good evening. I am ARIA, the vessel\'s onboard assistant. I do not do small talk. I do, however, take commands. Try `pwd` to confirm your location."'
+      'A voice crackles from a nearby speaker: "Good evening. I am ARIA, the vessel\'s onboard assistant. I do not do small talk. I do, however, take commands. Get your bearings with `pwd`, look around with `ls`, then `cat` each clue you find on deck."'
     ],
-    helpLines: ['pwd - show where you are', 'ls - list what is around you', 'clear - clear the screen'],
-    completeLines: ['ARIA: Deck systems reviewed. The Guest Hallway is now accessible. Try `cd ..` and then `cd hallway`.'],
+    objective: 'Get your bearings, then read all three clues on deck (cat each one).',
+    helpLines: [
+      'pwd - show where you are',
+      'ls - list the clues on deck',
+      'cat [file] - read a clue',
+      'clear - clear the screen (optional)'
+    ],
+    hints: [
+      'ARIA: Get oriented with `pwd`, then `ls` to see what the party left on deck.',
+      'ARIA: Read a clue with `cat [file]`, for example `cat earring.txt`.',
+      'ARIA: Three clues are on deck -- read all three (earring.txt, napkin.txt, overturned-chair.txt) to move on.'
+    ],
+    completeLines: ['ARIA: You have the scene in mind. The Guest Hallway is now accessible. Try `cd ..` and then `cd hallway`.'],
     checkCompletion(trackers) {
-      return ['pwd', 'ls', 'clear'].every((c) => trackers.commandsUsedThisRoom.has(c));
+      const need = ['earring.txt', 'napkin.txt', 'overturned-chair.txt'];
+      return need.every((f) => trackers.filesRead.has(f));
     }
   },
   hallway: {
@@ -127,7 +139,13 @@ const ROOMS = {
       'The hallway is lined with three cabin doors: margot-cabin, antoine-cabin, vasquez-cabin.',
       'ARIA: "Check each cabin. Use `cd [folder]` to enter, `cd ..` to step back out."'
     ],
-    helpLines: ['cd [folder] - enter a cabin', 'cd .. - step back into the hallway'],
+    objective: 'Search all three guest cabins (cd into each, cd .. to step back).',
+    helpLines: ['ls - list the cabin doors', 'cd [folder] - enter a cabin', 'cd .. - step back into the hallway'],
+    hints: [
+      'ARIA: Enter a cabin with `cd [cabin]` -- start with `cd margot-cabin`.',
+      'ARIA: Forgot the cabin names? `ls` lists all three doors.',
+      'ARIA: After a cabin, `cd ..` returns to the hallway before the next one. Visit all three.'
+    ],
     completeLines: ['ARIA: All three cabins checked. The Library is now accessible. Try `cd ..` and then `cd library`.'],
     checkCompletion(trackers) {
       return trackers.visitedCabins.size >= 3;
@@ -140,7 +158,13 @@ const ROOMS = {
       'Shelves of nautical novels and one very out-of-place filing cabinet.',
       'ARIA: "Three documents in here are worth your time. Use `cat [file]` to read each one."'
     ],
-    helpLines: ['ls - see what is in here', 'cat [file] - read a file'],
+    objective: 'Read all three documents in the study (cat each one).',
+    helpLines: ['ls - see what is in here', 'cat [file] - read a document'],
+    hints: [
+      'ARIA: `ls` reveals the documents sitting out in the study.',
+      'ARIA: Read one with `cat [file]`, e.g. `cat margot-diary.txt`.',
+      'ARIA: Three files hold the motive -- cat the diary, the log, and the note.'
+    ],
     completeLines: ['ARIA: Well. That escalated. The Galley is now accessible. Try `cd ..` and then `cd galley`.'],
     checkCompletion(trackers) {
       const need = ['margot-diary.txt', 'captains-log.txt', 'antoine-note.txt'];
@@ -154,7 +178,13 @@ const ROOMS = {
       'Pots still simmering, no chef in sight.',
       'ARIA: "Standard procedure: create an evidence folder, then log a case file inside it. `mkdir evidence`, then `cd evidence`, then `touch case-notes.txt`."'
     ],
+    objective: 'Make an evidence folder and log a case file inside it (mkdir, cd, touch).',
     helpLines: ['mkdir [folder] - create a folder', 'cd [folder] - enter it', 'touch [file] - create a file'],
+    hints: [
+      'ARIA: Start an evidence locker with `mkdir evidence`.',
+      'ARIA: Step inside it: `cd evidence`.',
+      'ARIA: Log the case with `touch case-notes.txt` inside the evidence folder.'
+    ],
     completeLines: ['ARIA: Evidence locker established. The Vault is now accessible. Try `cd ..` and then `cd vault`.'],
     checkCompletion(trackers, fs, FS) {
       const evidence = FS.getNode(fs, ['galley', 'evidence']);
@@ -170,10 +200,16 @@ const ROOMS = {
       'A small safe room. Two documents sit on the table: will-amendment.txt and ledger.txt.',
       'ARIA: "Copy the will amendment to the evidence locker in case the original disappears: `cp will-amendment.txt /galley/evidence`. Then move the ledger there for safekeeping: `mv ledger.txt /galley/evidence`."'
     ],
+    objective: 'Copy the will and move the ledger into /galley/evidence (cp, mv).',
     helpLines: [
       'cp [source] [dest] - copy a file',
       'mv [source] [dest] - move a file',
       'tip: /galley/evidence is a full path that works from anywhere'
+    ],
+    hints: [
+      'ARIA: Copy the will to safety: `cp will-amendment.txt /galley/evidence`.',
+      'ARIA: Now move the ledger there too: `mv ledger.txt /galley/evidence`.',
+      'ARIA: `/galley/evidence` is a full path -- it works from anywhere on the yacht.'
     ],
     completeLines: ['ARIA: Evidence secured. The Bridge is now accessible. Try `cd ..` and then `cd bridge`.'],
     checkCompletion(trackers, fs, FS) {
@@ -188,12 +224,22 @@ const ROOMS = {
     title: 'Bridge',
     introLines: [
       'The bridge. A fabricated log file and a folder of planted red herrings are cluttering the console.',
-      'ARIA: "Clear the noise: `rm bridge-logs.txt`, then `rm -r red-herrings`."'
+      'ARIA: "Clear the noise first: `rm bridge-logs.txt`, then `rm -r red-herrings`. Then make your accusation."'
     ],
-    helpLines: ['rm [file] - delete a file', 'rm -r [folder] - delete a folder and everything in it'],
+    objective: 'Delete the planted red herrings, then accuse the culprit (rm, rm -r, accuse [name]).',
+    helpLines: [
+      'rm [file] - delete a file',
+      'rm -r [folder] - delete a folder and everything in it',
+      'accuse [name] - name the culprit (once the noise is cleared)'
+    ],
+    hints: [
+      'ARIA: Delete the fabricated log: `rm bridge-logs.txt`.',
+      'ARIA: Wipe the whole folder of planted clues: `rm -r red-herrings`.',
+      'ARIA: Weigh every clue, then `accuse [name]`. Ask yourself: was there ever a body?'
+    ],
     completeLines: [
-      'ARIA: Noise cleared.',
-      'ARIA: "Return to the evidence locker and read what you recovered: `cd /galley/evidence`, then `cat will-amendment.txt`."'
+      'ARIA: Noise cleared. Every clue you gathered is on the table.',
+      'ARIA: "Now make your case. `accuse [name]` -- Margot, Antoine, Vasquez, or Reggie."'
     ],
     checkCompletion(trackers, fs, FS) {
       const logsGone = FS.getNode(fs, ['bridge', 'bridge-logs.txt']);
@@ -214,7 +260,23 @@ const WIN_TEXT = [
   'THE END.'
 ];
 
-const rooms = { ROOM_ORDER, ROOMS, CABIN_FLAVOR, WIN_TEXT, buildInitialFilesystem };
+// The finale: the player weighs the clues and names the culprit. The twist is
+// that there was never a murder at all -- Reggie staged his own disappearance --
+// so the clever, correct answer is to accuse Reggie himself.
+const ACCUSATION = {
+  prompt: 'ARIA: Make your case with `accuse [name]` -- Margot, Antoine, Vasquez, or Reggie.',
+  suspects: ['margot', 'antoine', 'vasquez', 'reggie'],
+  correct: 'reggie',
+  wrong: {
+    margot: ['ARIA: Margot had motive -- the will, the affair with Antoine -- but the ledger and the note clear her hand. Look again. Was there ever a body?'],
+    antoine: ['ARIA: Antoine? The whole ship is in love with the chef. Motive in abundance; murder, none. Reconsider.'],
+    vasquez: ["ARIA: The captain's log incriminates the heart, not the hand. Weigh the other clue: was there ever a body?"]
+  },
+  wrongDefault: ["ARIA: That name isn't among the guests. The suspects are Margot, Antoine, Vasquez, and Reggie."],
+  notReady: ['ARIA: Gather and secure every clue before you make an accusation -- there is still noise to clear on the bridge.']
+};
+
+const rooms = { ROOM_ORDER, ROOMS, CABIN_FLAVOR, WIN_TEXT, ACCUSATION, buildInitialFilesystem };
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = rooms;

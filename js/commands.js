@@ -96,7 +96,7 @@ function executeCommand(fs, cwdPath, rawInput) {
       return {
         commandName: 'unknown',
         success: false,
-        outputLines: [`ARIA: I don't recognize "${name}". Try one of: pwd, ls, cd, mkdir, touch, cp, mv, rm, cat, clear.`],
+        outputLines: [`ARIA: I don't recognize "${name}". Try one of: pwd, ls, cd, mkdir, touch, cp, mv, rm, cat, clear -- or type hint.`],
         newCwdPath: null,
         clearScreen: false
       };

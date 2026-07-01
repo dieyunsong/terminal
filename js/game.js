@@ -16,6 +16,23 @@ class GameState {
     this.introShown = new Set(['deck']);
     this.won = false;
     this.lastCompletedRoomId = null;
+    this.hintsUsed = {}; // roomId -> number of hints spent (max Rooms.ROOMS[id].hints.length)
+  }
+
+  // Reveal the next room-specific hint, up to that room's budget (3 per room).
+  useHint() {
+    const roomId = this.currentRoomId();
+    const room = roomId && Rooms.ROOMS[roomId];
+    if (!room || !room.hints) {
+      return ['ARIA: Step into a room first -- hints are room-specific.'];
+    }
+    const used = this.hintsUsed[roomId] || 0;
+    if (used >= room.hints.length) {
+      return ["ARIA: That's every hint I have for this room. You've got this."];
+    }
+    this.hintsUsed[roomId] = used + 1;
+    const left = room.hints.length - this.hintsUsed[roomId];
+    return [room.hints[used] + ' (' + left + ' hint' + (left === 1 ? '' : 's') + ' left here)'];
   }
 
   currentRoomId() {
@@ -39,15 +56,50 @@ class GameState {
   getSidebarInfo() {
     const roomId = this.currentRoomId() || 'deck';
     const room = Rooms.ROOMS[roomId] || Rooms.ROOMS.deck;
+    const hintTotal = (room.hints || []).length;
     return {
       title: room.title,
+      objective: room.objective || '',
       helpLines: room.helpLines,
       cluesCollected: Array.from(this.filesRead),
-      cwd: FS.pwd(this.cwdPath)
+      cwd: FS.pwd(this.cwdPath),
+      hintsRemaining: Math.max(0, hintTotal - (this.hintsUsed[roomId] || 0))
     };
   }
 
+  // The player weighs the clues and names the culprit. Only allowed once the
+  // bridge has been cleared; accusing Reggie (the mastermind) solves the case.
+  accuse(nameRaw) {
+    const A = Rooms.ACCUSATION;
+    if (!this.completedRooms.has('bridge')) {
+      return { outputLines: A.notReady, clearScreen: false, roomChanged: false, won: this.won };
+    }
+    const name = String(nameRaw || '').trim().toLowerCase().replace(/[^a-z]/g, '');
+    if (!name) {
+      return { outputLines: [A.prompt], clearScreen: false, roomChanged: false, won: this.won };
+    }
+    if (!A.suspects.includes(name)) {
+      return { outputLines: A.wrongDefault, clearScreen: false, roomChanged: false, won: this.won };
+    }
+    if (name === A.correct) {
+      this.won = true;
+      return { outputLines: Rooms.WIN_TEXT, clearScreen: false, roomChanged: false, won: true };
+    }
+    return { outputLines: A.wrong[name] || A.wrongDefault, clearScreen: false, roomChanged: false, won: this.won };
+  }
+
   handleInput(raw) {
+    const trimmed = raw.trim();
+    // `hint` is a meta-command handled by the game, not the filesystem: it
+    // doesn't move the player, count toward progress, or clear the screen.
+    if (/^hint$/i.test(trimmed)) {
+      return { outputLines: this.useHint(), clearScreen: false, roomChanged: false, won: this.won };
+    }
+    // `accuse [name]` is the finale mechanic (also game-handled, not the fs).
+    if (/^accuse\b/i.test(trimmed)) {
+      return this.accuse(trimmed.replace(/^accuse\b/i, ''));
+    }
+
     const result = Commands.executeCommand(this.fs, this.cwdPath, raw);
     const outputLines = result.outputLines.slice();
     const clearScreen = result.clearScreen;
@@ -86,15 +138,6 @@ class GameState {
 
     if (result.success && result.commandName === 'cat' && result.catFile) {
       this.filesRead.add(result.catFile);
-
-      if (
-        this.completedRooms.has('bridge') &&
-        this.cwdPath.join('/') === 'galley/evidence' &&
-        result.catFile === 'will-amendment.txt'
-      ) {
-        this.won = true;
-        return { outputLines: Rooms.WIN_TEXT, clearScreen: false, roomChanged: false, won: true };
-      }
     }
 
     const roomChanged = this.checkRoomProgress();
@@ -128,7 +171,8 @@ class GameState {
       visitedCabins: Array.from(this.visitedCabins),
       filesRead: Array.from(this.filesRead),
       introShown: Array.from(this.introShown),
-      won: this.won
+      won: this.won,
+      hintsUsed: this.hintsUsed
     };
   }
 
@@ -142,6 +186,7 @@ class GameState {
     state.filesRead = new Set(data.filesRead);
     state.introShown = new Set(data.introShown);
     state.won = data.won;
+    state.hintsUsed = data.hintsUsed || {};
     return state;
   }
 }
